@@ -1,0 +1,11 @@
+faiss-cpu
+openpyxl
+langchain
+youtube-transcript-api
+langchain-openai
+langchain-community
+python-dotenv
+pypdf
+gradio
+langchain-pinecone
+streamlit
