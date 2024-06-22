@@ -29,6 +29,15 @@ def cs_sidebar():
     st.sidebar.markdown('''[<img src='data:image/png;base64,{}' class='img-fluid' width=112 height=20>](https://neroai.com.br/)'''.format(img_to_bytes("imgs/neroai_logo.png")), unsafe_allow_html=True)
     st.sidebar.header('Powered by [Nero.AI](https://neroai.com.br/)')
 
+    #logout button
+    if st.session_state['logged_in']:
+        if st.sidebar.button("Logout"):
+            st.session_state['logged_in'] = False
+            st.session_state.pop('chat_history')
+            st.session_state['db'] = None
+            st.session_state['retriever'] = None
+            st.rerun()
+
     return None
 
 def vector_db():
@@ -88,42 +97,61 @@ embedding_size = 1536
 embedding_model = 'text-embedding-ada-002'
 embeddings = OpenAIEmbeddings(model=embedding_model)
 
+
+if 'logged_in' not in st.session_state:
+    st.session_state['logged_in'] = False
+
 # app config
 st.set_page_config(page_title="Edu Bot", page_icon="imgs/perfil.png")
 st.title("Assistente virtual - Pergunte ao EduBot")
-cs_sidebar()
 
-# session state
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = [
-        AIMessage(content="Olá, eu sou o Edu Bot que foi desenvolvido pela Nero.AI. Estou aqui para responder perguntas sobre ENEM. Como posso ajudar você?"),
-    ]
+# login
+if not st.session_state['logged_in']:
+    st.title("Login")
+    username = st.text_input("Nome de Usuário")
+    password = st.text_input("Senha", type='password')
+    if st.button("Login"):
+        if username == "admin" and password == "admin":
+            st.success("Login Realizado com Sucesso! Bem-vindo {}".format(username))
+            st.session_state['logged_in'] = True
+            st.rerun()
+        else:
+            st.error("Usuário ou Senha Incorretos!")
 
-if 'db' not in st.session_state:
-    st.session_state.db = vector_db()
-    st.session_state.retriever = st.session_state.db.as_retriever(search_kwargs={"k": 3})
+# chat
+else: 
+    cs_sidebar()
 
-# conversation
-for message in st.session_state.chat_history:
-    if isinstance(message, AIMessage):
-        with st.chat_message("AI", avatar="imgs/perfil.png"):
-            st.write(message.content)
-    elif isinstance(message, HumanMessage):
+    # session state
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = [
+            AIMessage(content="Olá, eu sou o Edu Bot que foi desenvolvido pela Nero.AI. Estou aqui para responder perguntas sobre ENEM. Como posso ajudar você?"),
+        ]
+
+    if 'db' not in st.session_state:
+        st.session_state.db = vector_db()
+        st.session_state.retriever = st.session_state.db.as_retriever(search_kwargs={"k": 3})
+
+    # conversation
+    for message in st.session_state.chat_history:
+        if isinstance(message, AIMessage):
+            with st.chat_message("AI", avatar="imgs/perfil.png"):
+                st.write(message.content)
+        elif isinstance(message, HumanMessage):
+            with st.chat_message("Human", avatar="👤"):
+                st.write(message.content)
+
+    # user input
+    user_query = st.chat_input("Type your message here...")
+    if user_query is not None and user_query != "":
+        st.session_state.chat_history.append(HumanMessage(content=user_query))
+
         with st.chat_message("Human", avatar="👤"):
-            st.write(message.content)
+            st.markdown(user_query)
 
-# user input
-user_query = st.chat_input("Type your message here...")
-if user_query is not None and user_query != "":
-    st.session_state.chat_history.append(HumanMessage(content=user_query))
+        
+        with st.chat_message("AI", avatar="imgs/perfil.png"):
+            with st.spinner("Thinking..."):
+                response = st.write_stream(respond(user_query, st.session_state.chat_history, st.session_state.db, st.session_state.retriever))
 
-    with st.chat_message("Human", avatar="👤"):
-        st.markdown(user_query)
-
-    
-    with st.chat_message("AI", avatar="imgs/perfil.png"):
-        with st.spinner("Thinking..."):
-            response = st.write_stream(respond(user_query, st.session_state.chat_history, st.session_state.db, st.session_state.retriever))
-
-    st.session_state.chat_history.append(AIMessage(content=response))
-
+        st.session_state.chat_history.append(AIMessage(content=response))
