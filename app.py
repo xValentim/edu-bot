@@ -34,8 +34,8 @@ def cs_sidebar():
         if st.sidebar.button("Logout"):
             st.session_state['logged_in'] = False
             st.session_state.pop('chat_history')
-            st.session_state['db'] = None
-            st.session_state['retriever'] = None
+            st.session_state.pop('db')
+            st.session_state.pop('retriever')
             st.rerun()
 
     return None
