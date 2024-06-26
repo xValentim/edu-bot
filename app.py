@@ -2,14 +2,33 @@ from dotenv import load_dotenv
 import streamlit as st
 import streamlit_authenticator as stauth
 from streamlit_authenticator.utilities.hasher import Hasher
+from streamlit_authenticator.utilities.exceptions import (CredentialsError,
+                                                          ForgotError,
+                                                          LoginError,
+                                                          RegisterError,
+                                                          ResetError,
+                                                          UpdateError) 
 import streamlit as st
 from utils import*
 
+
+
+# Cria o authenticator 
+authenticator = stauth.Authenticate(
+    config['credentials'],
+    config['cookie']['name'],
+    config['cookie']['key'],
+    config['cookie']['expiry_days'],
+    config['pre-authorized']
+)
 # LOGIN
 try:
     authenticator.login()
 except LoginError as e:
     st.error(e)
+    
+if 'authentication_status' not in st.session_state:
+    st.session_state['authentication_status'] = None
 
 if st.session_state["authentication_status"]: #Se as credenciais forem corretas abre o chatbot
     authenticator.logout(location='sidebar')
