@@ -9,3 +9,4 @@ pypdf
 gradio
 langchain-pinecone
 streamlit
+streamlit_authenticator
