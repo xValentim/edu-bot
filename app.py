@@ -7,6 +7,7 @@ from utils import*
 
 
 
+
 # LOGIN
 try:
     authenticator.login()
@@ -16,7 +17,6 @@ except LoginError as e:
 if st.session_state["authentication_status"]: #Se as credenciais forem corretas abre o chatbot
     authenticator.logout(location='sidebar')
     
-
     #CHATBOT
     st.title("Assistente virtual - Pergunte ao EduBot")
     cs_sidebar()
