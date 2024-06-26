@@ -5,9 +5,6 @@ from streamlit_authenticator.utilities.hasher import Hasher
 import streamlit as st
 from utils import*
 
-
-
-
 # LOGIN
 try:
     authenticator.login()
