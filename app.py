@@ -78,4 +78,5 @@ elif st.session_state["authentication_status"] is False: # Se as credenciais for
 elif st.session_state["authentication_status"] is None:
     if "chat_history" in st.session_state:
         st.session_state.pop("chat_history")
+
     st.warning('Please enter your username and password')
