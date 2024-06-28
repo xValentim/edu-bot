@@ -74,6 +74,8 @@ if st.session_state["authentication_status"]: #Se as credenciais forem corretas 
         st.session_state.chat_history.append(AIMessage(content=response))
 
 elif st.session_state["authentication_status"] is False: # Se as credenciais forem falsas, gera o aviso
-    st.error('Username/password is incorrect')
+    st.error('Username/password is incorrect') 
 elif st.session_state["authentication_status"] is None:
+    if "chat_history" in st.session_state:
+        st.session_state.pop("chat_history")
     st.warning('Please enter your username and password')
