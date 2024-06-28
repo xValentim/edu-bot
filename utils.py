@@ -122,7 +122,7 @@ def respond(user_query, chat_history, db, retriever):
         ('system', "Aqui está o contexto adicional de videos no YouYube:\n\n{context_query}\n\nSempre que possível, cite fontes (dados do YouTube) de onde você está tirando a informação. Somente cite fontes dos documentos fornecidos acima."),
         ('system', "Obrigatoriamente tente relacionar o contexto da adicional com o contexto da pergunta. FORNEÇA LINKS para conteúdos que possam interessar ao usuários. JAMAIS USE LINKS QUE NÂO FORAM FORNECIDOS A VOCÊ."),
         ('system', "Suas respostas devem ser formatadas usando Markdown. Sempre que possível destaque expressões e tópicos principais com negrito ou itálico, e organize o texto usando títulos e subtítulos."),
-        ('system', "{query}"),
+        ('system', "{user_query}"),
     ]
     
     prompt = ChatPromptTemplate.from_messages(all_messages)
@@ -151,63 +151,3 @@ embeddings = OpenAIEmbeddings(model=embedding_model)
 # Carrega o arquivo config
 with open('config.yaml', 'r', encoding='utf-8') as file:
     config = yaml.load(file, Loader=SafeLoader)
-    
-
-# import os
-# from openai import OpenAI
-# import base64
-# import mimetypes
-
-# client = OpenAI(api_key='apikey')
-# import mimetypes
-# import base64
-
-# def image_to_base64(image_path):
-#     # Adivinha o tipo MIME da imagem
-#     mime_type, _ = mimetypes.guess_type(image_path)
-    
-#     # Verifica se o tipo MIME é válido e se é uma imagem
-#     if not mime_type or not mime_type.startswith('image'):
-#         raise ValueError("The file type is not recognized as an image")
-    
-#     # Lê os dados binários da imagem
-#     with open(image_path, 'rb') as image_file:
-#         encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
-    
-#     # Formata o resultado com o prefixo apropriado
-#     image_base64 = f"data:{mime_type};base64,{encoded_string}"
-    
-#     return image_base64
-
-
-# def transcribe_image(image_path):
-
-#     base64_string = image_to_base64(image_path)
-#     # Make an API call to submit the image for transcription
-#     response = client.chat.completions.create(
-#     model="gpt-4-vision-preview",
-#     messages=[
-#         {
-#             "role": "user",
-#             "content": [
-#                 {"type": "text", "text": "Manually transcribe this handwriting"},
-#                 {
-#                     "type": "image_url",
-#                     "image_url": {
-#                         "url": base64_string,
-#                         "detail": "low"
-#                     }
-#                 },
-#             ],
-#         }
-#     ],
-#     max_tokens=300,
-# )
-
-#     # Print the transcription result
-#     print(response)
-
-# # Example usage
-# image_path = 'testimage.png'
-# transcribe_image('imgs/redacao.jpg')
-
