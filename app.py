@@ -34,8 +34,7 @@ if 'authentication_status' not in st.session_state:
 if st.session_state["authentication_status"]: # Se as credenciais forem corretas abre o chatbot
     authenticator.logout(location='sidebar')
     cs_sidebar()
-    # Título do aplicativo
-    st.title("Assistente virtual - Pergunte ao EduBot")
+    
 
 
     page = st.sidebar.selectbox(
@@ -44,6 +43,8 @@ if st.session_state["authentication_status"]: # Se as credenciais forem corretas
     )
 
     if page == "Chatbot":
+        # Título do aplicativo
+        st.title("Assistente virtual - Pergunte ao EduBot")
         st.subheader("Chatbot")
         
         if "chat_history" not in st.session_state:
@@ -77,7 +78,6 @@ if st.session_state["authentication_status"]: # Se as credenciais forem corretas
             st.session_state.chat_history.append(AIMessage(content=response))
 
     elif page == "Redação":
-        st.subheader("Redação")
         pg = st.navigation([st.Page("./pages/redacao.py")])
         pg.run()
 
