@@ -56,7 +56,7 @@ def transcribe_image(image_path):
     return response.choices[0].message.content
 
 st.title("Corretor de Redação - Envie ao EduBot")
-cs_sidebar()
+
 
 uploaded_file = st.file_uploader("Escolha um arquivo")
 

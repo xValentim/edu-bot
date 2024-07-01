@@ -122,7 +122,7 @@ def respond(user_query, chat_history, db, retriever):
         ('system', "Aqui está o contexto adicional de videos no YouYube:\n\n{context_query}\n\nSempre que possível, cite fontes (dados do YouTube) de onde você está tirando a informação. Somente cite fontes dos documentos fornecidos acima."),
         ('system', "Obrigatoriamente tente relacionar o contexto da adicional com o contexto da pergunta. FORNEÇA LINKS para conteúdos que possam interessar ao usuários. JAMAIS USE LINKS QUE NÂO FORAM FORNECIDOS A VOCÊ."),
         ('system', "Suas respostas devem ser formatadas usando Markdown. Sempre que possível destaque expressões e tópicos principais com negrito ou itálico, e organize o texto usando títulos e subtítulos."),
-        ('system', "{query}"),
+        ('system', "{user_query}"),
     ]
     
     prompt = ChatPromptTemplate.from_messages(all_messages)
