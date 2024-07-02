@@ -55,6 +55,7 @@ def get_strings_from_documents(documents):
     return [doc.page_content for doc in documents]
 
 def format_docs(docs):
+    print(docs)
     return "\n\n".join([d.page_content for d in docs])
 
 def reciprocal_rank_fusion(results: list[list], k=60):
