@@ -11,10 +11,8 @@ from streamlit_authenticator.utilities.exceptions import (CredentialsError,
 import streamlit as st
 from utils import*
 
-
 def reset_conversation():
   st.session_state.chat_history = None
-
 
 # Cria o authenticator 
 authenticator = stauth.Authenticate(
@@ -66,7 +64,6 @@ if st.session_state["authentication_status"]: #Se as credenciais forem corretas 
 
         with st.chat_message("Human", avatar="👤"):
             st.markdown(user_query)
-
         
         with st.chat_message("AI", avatar="imgs/perfil.png"):
             with st.spinner("Thinking..."):
