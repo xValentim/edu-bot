@@ -40,9 +40,9 @@ def cs_sidebar():
 
 def vector_db():
     index_name = os.getenv("PINECONE_INDEX_NAME")
-    embeddings_size = 1536
-    embeddings_model = 'text-embedding-ada-002'
-    embeddings = OpenAIEmbeddings(model=embeddings_model)
+    embeddings_size = 3072
+    embeddings_model = 'text-embedding-3-large'
+    embeddings = OpenAIEmbeddings(model=embeddings_model, dimensions= embeddings_size)
     vectorstore = PineconeVectorStore(index_name=index_name, embedding=embeddings)
     return vectorstore
 
@@ -143,8 +143,8 @@ def respond(user_query, chat_history, db, retriever):
     
     return chain.stream({"user_query": user_query})
 
-embedding_size = 1536
-embedding_model = 'text-embedding-ada-002'
+embedding_size = 3072
+embedding_model = 'text-embedding-3-large'
 embeddings = OpenAIEmbeddings(model=embedding_model)
 
 
