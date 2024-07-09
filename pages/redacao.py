@@ -22,12 +22,6 @@ def corrige(uploaded_file, tema):
     doc = PdfReader(uploaded_file)
 
     texto = [doc.pages[i].extract_text() for i in range(len(doc.pages))]
-
-    # if 'db' not in st.session_state:
-    #     st.session_state.db = vector_db()
-    #     st.session_state.retriever = st.session_state.db.as_retriever(search_kwargs={"k": 3})
-
-    # chain_rag = st.session_state.retriever | format_docs
     
     template = """ \n
     Aqui está o texto de redação: {texto} \n
@@ -39,7 +33,7 @@ def corrige(uploaded_file, tema):
 
     chain = (
         prompt 
-        | ChatOpenAI(temperature=0, api_key=OPENAI_API_KEY, model="gpt-3.5-turbo-0125")
+        | ChatOpenAI(temperature=0, api_key=OPENAI_API_KEY, model="gpt-4o")
         | StrOutputParser() 
         | {"redacao_limpa": RunnablePassthrough()}
     )
@@ -170,9 +164,9 @@ def corrige(uploaded_file, tema):
     ## Competência 1 - Nota: (nota)
     (lista de justificativas e sugestões de melhoria) - use listas com markdown
     """
-    combined_rules = """Repita as entradas de cada competência, mantendo o formato original na estrutura:
-    ## Tema da redação: (tema)
-    # Nota total: (calculada a partir das notas das competências)
+    combined_rules = """Repita as entradas de cada competência, mantendo o formato original na estrutura, substitua a nota_total pela soma das notas das competências, substitua o tema_redacao pelo tema da redação:
+    ## Tema da redação: (tema_redacao)
+    # Nota total: (nota_total)
     {competencia_1}
     {competencia_2}
     {competencia_3}
@@ -184,7 +178,7 @@ def corrige(uploaded_file, tema):
     prompt_combined = ChatPromptTemplate.from_template(combined_rules)
 
         
-    llm = ChatOpenAI(temperature=0.1, model="gpt-3.5-turbo-0125")
+    llm = ChatOpenAI(temperature=0, model="gpt-4o")
 
     messages_comp1 = [
         SystemMessage(content=base_rule),
@@ -292,28 +286,6 @@ def corrige(uploaded_file, tema):
     )
     
     return st.markdown(chain_correcao.invoke({'texto' : texto,  "tema" : tema}))
-
-    # prompt2 = ChatPromptTemplate.from_messages(messages)
-
-        
-    # llm = ChatOpenAI(temperature=0.1, model="gpt-3.5-turbo-0125")
-
-    # chain_correcao = (
-    #             {
-    #                 "tema": itemgetter("tema"),
-    #                 "redacao" : chain,
-    #                 # "context_query": itemgetter("rag_quary") | chain_rag 
-    #             }
-    #             | prompt2
-    #             | llm
-    #             | StrOutputParser()
-    #         )
-    
-    # rag_quary = "Busque documentos relevantes para os critérios de correção do ENEM."
-    
-    # return st.markdown(chain_correcao.invoke({"texto": texto,  "tema" : tema}))
-#"rag_quary": rag_quary,
-
 
 button_correcao = st.button("Corrigir", type="primary")
 if button_correcao:
