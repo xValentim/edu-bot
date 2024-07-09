@@ -37,12 +37,11 @@ def cs_sidebar():
 
     return None
 
-
 def vector_db():
     index_name = os.getenv("PINECONE_INDEX_NAME")
-    embeddings_size = 1536
-    embeddings_model = 'text-embedding-ada-002'
-    embeddings = OpenAIEmbeddings(model=embeddings_model)
+    embeddings_size = 3072
+    embeddings_model = 'text-embedding-3-large'
+    embeddings = OpenAIEmbeddings(model=embeddings_model, dimensions= embeddings_size)
     vectorstore = PineconeVectorStore(index_name=index_name, embedding=embeddings)
     return vectorstore
 

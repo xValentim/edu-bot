@@ -1,33 +1,22 @@
 import streamlit as st
 from utils import*
 
-import base64
-import mimetypes
-import mimetypes
-import base64
-from io import StringIO
-from openai import OpenAI
+import streamlit as st
+from streamlit import session_state as ss
+from modules.nav import MenuButtons
 from PyPDF2 import PdfReader
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+if 'authentication_status' not in ss:
+    st.switch_page('./pages/account.py')
 
-st.title("Corretor de Redação - Envie ao EduBot")
-cs_sidebar()
-
-uploaded_file = st.file_uploader("Upload a file", type=['pdf'])
-tema = st.chat_input("Insira o tema da redação")
+MenuButtons()
 
 def corrige(uploaded_file, tema):
     doc = PdfReader(uploaded_file)
 
     texto = [doc.pages[i].extract_text() for i in range(len(doc.pages))]
-
-    # if 'db' not in st.session_state:
-    #     st.session_state.db = vector_db()
-    #     st.session_state.retriever = st.session_state.db.as_retriever(search_kwargs={"k": 3})
-
-    # chain_rag = st.session_state.retriever | format_docs
     
     template = """ \n
     Aqui está o texto de redação: {texto} \n
@@ -200,14 +189,18 @@ def corrige(uploaded_file, tema):
     rag_quary = "Busque documentos relevantes para os critérios de correção do ENEM."
     
     return st.markdown(chain_correcao.invoke({"texto": texto,  "tema" : tema}))
-#"rag_quary": rag_quary,
 
+st.title("Corretor de Redação - Envie ao EduBot")
+cs_sidebar()
+
+uploaded_file = st.file_uploader("Upload a file", type=['pdf'])
+tema = st.chat_input("Insira o tema da redação")
 
 button_correcao = st.button("Corrigir", type="primary")
 if button_correcao:
     with st.chat_message("Human", avatar="👤"):
         corrige(uploaded_file, tema)
-        
+    
 
 
 
