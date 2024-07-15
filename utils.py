@@ -92,7 +92,7 @@ def respond(user_query, chat_history, db, retriever):
     documentos relevantes de um banco de dados vetorial. Ao gerar várias perspectivas sobre a pergunta do usuário de contexto semântico idêntico, 
     seu objetivo é ajudar o usuário a superar algumas das limitações da busca de similaridade baseada em distância. 
     Forneça essas perguntas alternativas separadas por novas linhas. \n
-    Gere novas perguntas relacionadas a: {query} \n
+    Gere novas perguntas relacionadas a: {user_query} \n
     Saída (4 consultas):"""
 
 
@@ -132,7 +132,7 @@ def respond(user_query, chat_history, db, retriever):
             {
                 "context": retrieval_chain_rag_fusion,
                 
-                "query": itemgetter("query")
+                "query": itemgetter("user_query")
              }
             | prompt
             | RunnableLambda(lambda x,  : history_buffer + " ".join([msg.prompt.template for msg in prompt.messages]))
