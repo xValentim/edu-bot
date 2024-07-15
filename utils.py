@@ -8,7 +8,7 @@ from langchain_pinecone import PineconeVectorStore
 from langchain_community.vectorstores import FAISS
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 from operator import itemgetter
 from langchain.load import dumps, loads
@@ -41,9 +41,9 @@ def cs_sidebar():
 
 def vector_db():
     index_name = os.getenv("PINECONE_INDEX_NAME")
-    embeddings_size = 1536
-    embeddings_model = 'text-embedding-ada-002'
-    embeddings = OpenAIEmbeddings(model=embeddings_model)
+    embeddings_size = 3072
+    embeddings_model = 'text-embedding-3-large'
+    embeddings = OpenAIEmbeddings(model=embeddings_model, dimensions= embeddings_size)
     vectorstore = PineconeVectorStore(index_name=index_name, embedding=embeddings)
     return vectorstore
 
@@ -89,58 +89,127 @@ def reciprocal_rank_fusion(results: list[list], k=60):
     return reranked_results
 
 def respond(user_query, chat_history, db, retriever):
-    
-    llm = ChatOpenAI(temperature=0.1, model="gpt-3.5-turbo-0125")
 
-    # RAG-Fusion: Related
-    template = """You are a helpful assistant that generates multiple search queries based on a single input query. \n
-    Generate multiple search queries related to: {question} \n
-    Output (4 queries):"""
+
+    template = """Você é um assistente de modelo de linguagem de IA. Sua tarefa é gerar quatro versões diferentes da pergunta fornecida pelo usuário para recuperar 
+    documentos relevantes de um banco de dados vetorial. Ao gerar várias perspectivas sobre a pergunta do usuário de contexto semântico idêntico, 
+    seu objetivo é ajudar o usuário a superar algumas das limitações da busca de similaridade baseada em distância. 
+    Forneça essas perguntas alternativas separadas por novas linhas. \n
+    Gere novas perguntas relacionadas a: {user_query} \n
+    Saída (4 consultas):"""
+
+
     prompt_rag_fusion = ChatPromptTemplate.from_template(template)
 
     generate_queries = (
         prompt_rag_fusion 
-        | ChatOpenAI(temperature=0)
+        | ChatOpenAI(temperature=0, api_key=OPENAI_API_KEY, model="gpt-4o")
         | StrOutputParser() 
         | (lambda x: x.split("\n"))
     )
-    
+
+    #Chain com RRF
     retrieval_chain_rag_fusion = generate_queries | retriever.map() | reciprocal_rank_fusion
 
-    # RAG
-    all_messages = [
-        ('system', "Aqui está o que foi conversado até agora:\n\n" + \
-                    "\n\n".join([msg.content for msg in chat_history[-4:]])),
+    chat = "\n\n".join([msg.content for msg in chat_history[-4:]])
+    history_buffer = f"Aqui está o que foi conversado até agora:\n\n {chat}"
+    
+    
+    template_1 = [
         ('system', """
                     Você é um bot chamado Edu e foi desenvolvido pela Nero.AI. 
                     Você vai responder perguntas sobre Enem e dar dicas de estudo.
                     Se apresente e diga como você pode ajudar."""),
         ('system', "Aqui está o contexto adicional de videos no YouYube:\n\n{context}\n\nSempre que possível, cite fontes (dados do YouTube) de onde você está tirando a informação. Somente cite fontes dos documentos fornecidos acima."),
         ('system', "Obrigatoriamente tente relacionar o contexto da adicional com o contexto da pergunta. FORNEÇA LINKS para conteúdos que possam interessar ao usuários. JAMAIS USE LINKS QUE NÂO FORAM FORNECIDOS A VOCÊ."),
-        ('system', "Responda as perguntas com uma linguagem Markdown"),
-        ('system', "{question}"),
+        ('system', "Suas respostas devem ser formatadas usando Markdown no caso de textos. Sempre que possível destaque expressões e tópicos principais com negrito ou itálico, e organize o texto usando títulos e subtítulos."),
+        ('system', "{user_query}"),
     ]
-    # prompt = ChatPromptTemplate.from_template(template)
-    prompt = ChatPromptTemplate.from_messages(all_messages)
-
-    final_rag_chain = (
-        {"context": retrieval_chain_rag_fusion, 
-        "question": itemgetter("question")} 
-        | prompt
-        | llm
-        | StrOutputParser()
-    )
     
-    return final_rag_chain.stream({"question": user_query})
+    prompt = ChatPromptTemplate.from_messages(template_1)
+    
+    
+    llm = ChatOpenAI(temperature=0.1, model="gpt-3.5-turbo-0125")
+    
+    chain = (
+            {
+                "context_query": retrieval_chain_rag_fusion,
+                
+                "user_query": itemgetter("user_query")
+             }
+            | prompt
+            | RunnableLambda(lambda x,  : history_buffer + " ".join([msg.prompt.template for msg in prompt.messages]))
+            | llm
+            | StrOutputParser()
+        )
+    
+    return chain.stream({"user_query": user_query})
 
-embedding_size = 1536
-embedding_model = 'text-embedding-ada-002'
+embedding_size = 3072
+embedding_model = 'text-embedding-3-large'
 embeddings = OpenAIEmbeddings(model=embedding_model)
-
 
 
 # Carrega o arquivo config
 with open('config.yaml', 'r', encoding='utf-8') as file:
     config = yaml.load(file, Loader=SafeLoader)
     
+
+# import os
+# from openai import OpenAI
+# import base64
+# import mimetypes
+
+# client = OpenAI(api_key='apikey')
+# import mimetypes
+# import base64
+
+# def image_to_base64(image_path):
+#     # Adivinha o tipo MIME da imagem
+#     mime_type, _ = mimetypes.guess_type(image_path)
     
+#     # Verifica se o tipo MIME é válido e se é uma imagem
+#     if not mime_type or not mime_type.startswith('image'):
+#         raise ValueError("The file type is not recognized as an image")
+    
+#     # Lê os dados binários da imagem
+#     with open(image_path, 'rb') as image_file:
+#         encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+    
+#     # Formata o resultado com o prefixo apropriado
+#     image_base64 = f"data:{mime_type};base64,{encoded_string}"
+    
+#     return image_base64
+
+
+# def transcribe_image(image_path):
+
+#     base64_string = image_to_base64(image_path)
+#     # Make an API call to submit the image for transcription
+#     response = client.chat.completions.create(
+#     model="gpt-4-vision-preview",
+#     messages=[
+#         {
+#             "role": "user",
+#             "content": [
+#                 {"type": "text", "text": "Manually transcribe this handwriting"},
+#                 {
+#                     "type": "image_url",
+#                     "image_url": {
+#                         "url": base64_string,
+#                         "detail": "low"
+#                     }
+#                 },
+#             ],
+#         }
+#     ],
+#     max_tokens=300,
+# )
+
+#     # Print the transcription result
+#     print(response)
+
+# # Example usage
+# image_path = 'testimage.png'
+# transcribe_image('imgs/redacao.jpg')
+

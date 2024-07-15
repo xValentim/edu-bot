@@ -1,7 +1,7 @@
 credentials:
   usernames:
     admin:
-      email: admin@gmail.com
+      email: jsmith@gmail.com
       failed_login_attempts: 0 # Will be managed automatically
       logged_in: False # Will be managed automatically
       name: admin
@@ -12,6 +12,12 @@ credentials:
       logged_in: False # Will be managed automatically
       name: Rebecca Briggs
       password: def # Will be hashed automatically
+    hudson:
+      email: hudson@gmail.com
+      failed_login_attempts: 0 # Will be managed automatically
+      logged_in: False # Will be managed automatically
+      name: Hudson
+      password: hudson # Will be hashed automatically
 cookie:
   expiry_days: 30
   key: some_signature_key # Must be string
