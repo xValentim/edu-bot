@@ -1,3 +1,7 @@
+cookie:
+  expiry_days: 30
+  key: some_signature_key
+  name: some_cookie_name
 credentials:
   usernames:
     admin:
@@ -8,8 +12,8 @@ credentials:
       password: admin # Will be hashed automatically
     rbriggs:
       email: rbriggs@gmail.com
-      failed_login_attempts: 0 # Will be managed automatically
-      logged_in: False # Will be managed automatically
+      failed_login_attempts: 0
+      logged_in: false
       name: Rebecca Briggs
       password: def # Will be hashed automatically
     hudson:
