@@ -8,10 +8,11 @@ from langchain_pinecone import PineconeVectorStore
 from langchain_community.vectorstores import FAISS
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 from operator import itemgetter
 from langchain.load import dumps, loads
+
 
 from yaml.loader import SafeLoader
 import streamlit_authenticator as stauth
@@ -84,7 +85,6 @@ def reciprocal_rank_fusion(results: list[list], k=60):
     # Return the reranked results as a list of tuples, each containing the document and its fused score
     return reranked_results
 
-
 def respond(user_query, chat_history, db, retriever):
 
 
@@ -108,22 +108,23 @@ def respond(user_query, chat_history, db, retriever):
     #Chain com RRF
     retrieval_chain_rag_fusion = generate_queries | retriever.map() | reciprocal_rank_fusion
 
+    chat = "\n\n".join([msg.content for msg in chat_history[-4:]])
+    history_buffer = f"Aqui está o que foi conversado até agora:\n\n {chat}"
     
-    all_messages = [
-        ('system', "Aqui está o que foi conversado até agora:\n\n" + \
-                    "\n\n".join([msg.content for msg in chat_history[-4:]])),
+    
+    template_1 = [
         ('system', """
                     Você é um bot chamado Edu e foi desenvolvido pela Nero.AI. 
                     Você vai responder perguntas sobre Enem e dar dicas de estudo.
                     Se apresente e diga como você pode ajudar."""),
-        ('system', "Aqui está o contexto adicional de videos no YouYube:\n\n{context_query}\n\nSempre que possível, cite fontes (dados do YouTube) de onde você está tirando a informação. Somente cite fontes dos documentos fornecidos acima."),
+        ('system', "Aqui está o contexto adicional de videos no YouYube:\n\n{context}\n\nSempre que possível, cite fontes (dados do YouTube) de onde você está tirando a informação. Somente cite fontes dos documentos fornecidos acima."),
         ('system', "Obrigatoriamente tente relacionar o contexto da adicional com o contexto da pergunta. FORNEÇA LINKS para conteúdos que possam interessar ao usuários. JAMAIS USE LINKS QUE NÂO FORAM FORNECIDOS A VOCÊ."),
-        ('system', "Suas respostas devem ser formatadas usando Markdown. Sempre que possível destaque expressões e tópicos principais com negrito ou itálico, e organize o texto usando títulos e subtítulos."),
-        ('system', "{query}"),
+        ('system', "Suas respostas devem ser formatadas usando Markdown no caso de textos. Sempre que possível destaque expressões e tópicos principais com negrito ou itálico, e organize o texto usando títulos e subtítulos."),
+        ('system', "{user_query}"),
     ]
     
-    prompt = ChatPromptTemplate.from_messages(all_messages)
-
+    prompt = ChatPromptTemplate.from_messages(template_1)
+    
     
     llm = ChatOpenAI(temperature=0.1, model="gpt-3.5-turbo-0125")
     
@@ -134,14 +135,15 @@ def respond(user_query, chat_history, db, retriever):
                 "query": itemgetter("query")
              }
             | prompt
+            | RunnableLambda(lambda x,  : history_buffer + " ".join([msg.prompt.template for msg in prompt.messages]))
             | llm
             | StrOutputParser()
         )
     
     return chain.stream({"query": user_query})
 
-embedding_size = 1536
-embedding_model = 'text-embedding-ada-002'
+embedding_size = 3072
+embedding_model = 'text-embedding-3-large'
 embeddings = OpenAIEmbeddings(model=embedding_model)
 
 

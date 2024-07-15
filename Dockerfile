@@ -18,4 +18,4 @@ WORKDIR $HOME/app
 COPY --chown=user . $HOME/app
 
 # CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5000"]
-CMD ["streamlit", "run", "app.py", "--server.port", "5000", "--server.address", "0.0.0.0"]
+CMD ["streamlit", "run","--client.showSidebarNavigation=False", "app.py", "--server.port", "5000", "--server.address", "0.0.0.0"]

@@ -4,7 +4,20 @@ from utils import*
 import streamlit as st
 from streamlit import session_state as ss
 from modules.nav import MenuButtons
+
+import base64
+import mimetypes
+import mimetypes
+import base64
+
+from io import StringIO
+from openai import OpenAI
 from PyPDF2 import PdfReader
+
+
+st.title("Corretor de Redação - Envie ao EduBot")
+cs_sidebar()
+
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
@@ -28,8 +41,9 @@ def corrige(uploaded_file, tema):
 
     chain = (
         prompt 
-        | ChatOpenAI(temperature=0, api_key=OPENAI_API_KEY, model="gpt-3.5-turbo-0125")
+        | ChatOpenAI(temperature=0, api_key=OPENAI_API_KEY, model="gpt-4o")
         | StrOutputParser() 
+        | {"redacao_limpa": RunnablePassthrough()}
     )
 
     # Rules
@@ -153,45 +167,142 @@ def corrige(uploaded_file, tema):
     rule_7 = "Dentro dos exemplos, FAÇA UMA JUSTIFICATIVA APROFUNDADA deixando claro como o usuário pode melhorar na prática"
     rule_8 = "A redação deve ser zerada quando houver: Fuga total ao tema; Estruturação inadequada do texto; Redação inferior a 7 linhas; Desrespeito aos Direitos Humanos."
     rule_9 = "Não seja tão rígido com a correção. Lembre-se que o objetivo é ajudar o usuário a melhorar sua redação."
-    rule_10 = "Você irá corrigir a redação com base nessas competências e suas características. Pontue cada competência de acordo com o desempenho do usuário EVITE COMENTÁRIOS QUE FOQUEM NA FORMATAÇÃO DA ESCRITA DO USUÁRIO, FOQUE NO CONTEÚDO. Ao final, a nota final será a soma das pontuações em todas as compentências. Informe a nota final no final da correção. Escreva no topo da correção EXATAMENTE o tema da redação que lhe foi passado"
-    # Messages \n\n{context_query}\n\n. Sempre que possível, FORNEÇA LINKS dos vídeos relacionados para ajudar o aprendizado do aluno, JAMAIS USE LINKS QUE NÂO FORAM FORNECIDOS A VOCÊ e que NAO EXISTEM."
-    messages = [
+    rule_10 = "Você irá corrigir a redação com base nessas competências e suas características. Pontue cada competência de acordo com o desempenho do usuário EVITE COMENTÁRIOS QUE FOQUEM NA FORMATAÇÃO DA ESCRITA DO USUÁRIO, FOQUE NO CONTEÚDO. Escreva no topo da correção EXATAMENTE o tema da redação que lhe foi passado"
+    comp_template = """Escreva sua resposta no formato usando markdown:
+    ## Competência 1 - Nota: (nota)
+    (lista de justificativas e sugestões de melhoria) - use listas com markdown
+    """
+    combined_rules = """Repita as entradas de cada competência, mantendo o formato original na estrutura, substitua a nota_total pela soma das notas das competências, substitua o tema_redacao pelo tema da redação:
+    ## Tema da redação: (tema_redacao)
+    # Nota total: (nota_total)
+    {competencia_1}
+    {competencia_2}
+    {competencia_3}
+    {competencia_4}
+    {competencia_5}
+
+    """
+
+    prompt_combined = ChatPromptTemplate.from_template(combined_rules)
+
+        
+    llm = ChatOpenAI(temperature=0, model="gpt-4o")
+
+    messages_comp1 = [
         SystemMessage(content=base_rule),
         SystemMessage(content=rule_1),
+        SystemMessage(content=rule_6),
+        SystemMessage(content=rule_7),
+        SystemMessage(content=rule_9),
+        SystemMessage(content=rule_10),
+        SystemMessage(content=comp_template),
+        ('system', "Dê a pontuação da competência 1 e traga a justificativa para a pontuação dada. A redação do usuário é: {redacao_limpa}.")
+    ]
+
+    messages_comp2 = [
+        SystemMessage(content=base_rule),
         SystemMessage(content=rule_2),
+        SystemMessage(content=rule_6),
+        SystemMessage(content=rule_7),
+        SystemMessage(content=rule_9),
+        SystemMessage(content=rule_10),
+        SystemMessage(content=comp_template),
+        ('system', "Dê a pontuação da competência 2 e traga a justificativa para a pontuação dada. A redação do usuário é: {redacao_limpa}.")
+    ]
+
+    messages_comp3 = [
+        SystemMessage(content=base_rule),
         SystemMessage(content=rule_3),
+        SystemMessage(content=rule_6),
+        SystemMessage(content=rule_7),
+        SystemMessage(content=rule_9),
+        SystemMessage(content=rule_10),
+        SystemMessage(content=comp_template),
+        ('system', "Dê a pontuação da competência 3 e traga a justificativa para a pontuação dada. A redação do usuário é: {redacao_limpa}.")
+    ]
+
+    messages_comp4 = [
+        SystemMessage(content=base_rule),
         SystemMessage(content=rule_4),
+        SystemMessage(content=rule_6),
+        SystemMessage(content=rule_7),
+        SystemMessage(content=rule_9),
+        SystemMessage(content=rule_10),
+        SystemMessage(content=comp_template),
+        ('system', "Dê a pontuação da competência 4 e traga a justificativa para a pontuação dada. A redação do usuário é: {redacao_limpa}.")
+    ]
+
+    messages_comp5 = [
+        SystemMessage(content=base_rule),
         SystemMessage(content=rule_5),
         SystemMessage(content=rule_6),
         SystemMessage(content=rule_7),
-        SystemMessage(content=rule_8),
         SystemMessage(content=rule_9),
         SystemMessage(content=rule_10),
-        ('system', "Com base nas competências cobradas pela correção do ENEM, corrija a redação do usuário.A redação do usuário é: {redacao}.")
+        SystemMessage(content=comp_template),
+        ('system', "Dê a pontuação da competência 5 e traga a justificativa para a pontuação dada. A redação do usuário é: {redacao_limpa}.")
     ]
 
-    prompt2 = ChatPromptTemplate.from_messages(messages)
+    prompt_comp1 = ChatPromptTemplate.from_messages(messages_comp1)
+    prompt_comp2 = ChatPromptTemplate.from_messages(messages_comp2)
+    prompt_comp3 = ChatPromptTemplate.from_messages(messages_comp3)
+    prompt_comp4 = ChatPromptTemplate.from_messages(messages_comp4)
+    prompt_comp5 = ChatPromptTemplate.from_messages(messages_comp5)
 
-        
-    llm = ChatOpenAI(temperature=0.1, model="gpt-4o")
+    chain_comp1 = (
+        prompt_comp1
+        | llm
+        | StrOutputParser()
+    )
+
+    chain_comp2 = (
+        prompt_comp2
+        | llm
+        | StrOutputParser()
+    )
+
+    chain_comp3 = (
+        prompt_comp3
+        | llm
+        | StrOutputParser()
+    )
+
+    chain_comp4 = (
+        prompt_comp4
+        | llm
+        | StrOutputParser()
+    )
+
+    chain_comp5 = (
+        prompt_comp5
+        | llm
+        | StrOutputParser()
+    )
 
     chain_correcao = (
-                {
-                    "tema": itemgetter("tema"),
-                    "redacao" : chain,
-                    # "context_query": itemgetter("rag_quary") | chain_rag 
+                chain
+                | {
+                    "competencia_1": chain_comp1,
+                    "competencia_2": chain_comp2,
+                    "competencia_3": chain_comp3,
+                    "competencia_4": chain_comp4,
+                    "competencia_5": chain_comp5
                 }
-                | prompt2
+                | prompt_combined
                 | llm
                 | StrOutputParser()
-            )
+    )
     
-    rag_quary = "Busque documentos relevantes para os critérios de correção do ENEM."
-    
-    return st.markdown(chain_correcao.invoke({"texto": texto,  "tema" : tema}))
+    return st.markdown(chain_correcao.invoke({'texto' : texto,  "tema" : tema}))
+
+button_correcao = st.button("Corrigir", type="primary")
+if button_correcao:
+    with st.chat_message("Human", avatar="👤"):
+        corrige(uploaded_file, tema)
+
 
 st.title("Corretor de Redação - Envie ao EduBot")
-cs_sidebar()
+st.subheader("Redação")
 
 uploaded_file = st.file_uploader("Upload a file", type=['pdf'])
 tema = st.chat_input("Insira o tema da redação")
@@ -201,6 +312,5 @@ if button_correcao:
     with st.chat_message("Human", avatar="👤"):
         corrige(uploaded_file, tema)
     
-
 
 
