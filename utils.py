@@ -13,6 +13,7 @@ from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 from operator import itemgetter
 from langchain.load import dumps, loads
 
+
 from yaml.loader import SafeLoader
 import streamlit_authenticator as stauth
 
@@ -119,7 +120,7 @@ def respond(user_query, chat_history, db, retriever):
                     Você é um bot chamado Edu e foi desenvolvido pela Nero.AI. 
                     Você vai responder perguntas sobre Enem e dar dicas de estudo.
                     Se apresente e diga como você pode ajudar."""),
-        ('system', "Aqui está o contexto adicional de videos no YouYube:\n\n{context_query}\n\nSempre que possível, cite fontes (dados do YouTube) de onde você está tirando a informação. Somente cite fontes dos documentos fornecidos acima."),
+        ('system', "Aqui está o contexto adicional de videos no YouYube:\n\n{context}\n\nSempre que possível, cite fontes (dados do YouTube) de onde você está tirando a informação. Somente cite fontes dos documentos fornecidos acima."),
         ('system', "Obrigatoriamente tente relacionar o contexto da adicional com o contexto da pergunta. FORNEÇA LINKS para conteúdos que possam interessar ao usuários. JAMAIS USE LINKS QUE NÂO FORAM FORNECIDOS A VOCÊ."),
         ('system', "Suas respostas devem ser formatadas usando Markdown no caso de textos. Sempre que possível destaque expressões e tópicos principais com negrito ou itálico, e organize o texto usando títulos e subtítulos."),
         ('system', "{user_query}"),
