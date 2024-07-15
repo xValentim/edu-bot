@@ -130,7 +130,7 @@ def respond(user_query, chat_history, db, retriever):
     
     chain = (
             {
-                "context_query": retrieval_chain_rag_fusion,
+                "context": retrieval_chain_rag_fusion,
                 
                 "query": itemgetter("query")
              }
