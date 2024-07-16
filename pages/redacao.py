@@ -295,17 +295,11 @@ def corrige(uploaded_file, tema):
     
     return st.markdown(chain_correcao.invoke({'texto' : texto,  "tema" : tema}))
 
-button_correcao = st.button("Corrigir", type="primary")
-if button_correcao:
-    with st.chat_message("Human", avatar="👤"):
-        corrige(uploaded_file, tema)
 
-
-st.title("Corretor de Redação - Envie ao EduBot")
 st.subheader("Redação")
 
 uploaded_file = st.file_uploader("Upload a file", type=['pdf'])
-tema = st.chat_input("Insira o tema da redação")
+tema = st.text_input("Insira o tema da redação")
 
 button_correcao = st.button("Corrigir", type="primary")
 if button_correcao:

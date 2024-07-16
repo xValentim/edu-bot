@@ -10,3 +10,4 @@ gradio
 langchain-pinecone
 streamlit
 streamlit_authenticator
+PyPDF2
