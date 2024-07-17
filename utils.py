@@ -12,6 +12,8 @@ from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 from operator import itemgetter
 from langchain.load import dumps, loads
+from langchain_mongodb import MongoDBAtlasVectorSearch
+from pymongo import MongoClient
 
 from yaml.loader import SafeLoader
 import streamlit_authenticator as stauth
@@ -46,6 +48,19 @@ def vector_db():
     vectorstore = PineconeVectorStore(index_name=index_name, embedding=embeddings)
     return vectorstore
 
+def vector_db_simu():
+    MONGODB_ATLAS_CLUSTER_URI = os.getenv('MONGODB_URI')
+    client = MongoClient(MONGODB_ATLAS_CLUSTER_URI)
+    DB_NAME = os.getenv("DB_NAME")
+    COLLECTION_NAME = os.getenv("COLLECTION_NAME")
+    ATLAS_VECTOR_SEARCH_INDEX_NAME = os.getenv("ATLAS_VECTOR_SEARCH_INDEX_NAME")
+    MONGODB_COLLECTION = client[DB_NAME][COLLECTION_NAME]
+    vectorstore = MongoDBAtlasVectorSearch(
+        embedding=OpenAIEmbeddings(),
+        collection=MONGODB_COLLECTION,
+        index_name=ATLAS_VECTOR_SEARCH_INDEX_NAME,
+    )
+    return vectorstore
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 

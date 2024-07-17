@@ -11,14 +11,17 @@ MenuButtons()
 #CHATBOT
 st.title("Gerador de Simulados - EduBot")
 cs_sidebar()
-
-def gera_simulado(user_query):
+ 
+def gera_simulado(user_query, retriever):
     
     template = f"""Você é um assistente de modelo de linguagem de IA que irá gerar simulados. Sua tarefa é separar cada uma das matérias ou temas
-    que o usuário deseja estudar. A entrada do usuário pode ter uma ou mais matérias ou temas.
-    Forneça esses temas/matérias separados por novas linhas. \n
-    Separe os temas em: {user_query} \n
-    Saída (4 consultas):"""
+    que o usuário deseja estudar e gerar uma curta query descrevendo o temas, para facilitar a busca por similaridade.
+    A entrada do usuário pode ter uma ou mais matérias ou temas.
+    Forneça esses temas/matérias separados por novas linhas, no formato:
+    - Tema1: Descricao do tema1
+    - Tema2: Descricao do tema2
+    e assim por diante.
+    Separe os temas em: {user_query}"""
 
 
     # prompt_rag_temas = ChatPromptTemplate.from_template(template)
@@ -31,7 +34,7 @@ def gera_simulado(user_query):
     # )
 
     # #Chain com RRF
-
+    # retrieval_chain_rag_fusion = generate_queries | retriever.map() | reciprocal_rank_fusion
     
     # template_1 = [
     #     ('system', """
@@ -68,20 +71,26 @@ def gera_simulado(user_query):
     prompt = ChatPromptTemplate.from_template(template)
     llm = ChatOpenAI(temperature=0.1, model="gpt-3.5-turbo-0125")
 
-    chain = (
+    generate_temas = (
         prompt
         | llm
         | StrOutputParser()
+        | (lambda x: x.split("\n"))
     )
     
-    return chain.stream({})
+    retrieval_chain_rag_fusion = generate_temas | retriever.map()
 
+    return retrieval_chain_rag_fusion.stream({})
 
 st.subheader("Esta é a ferramenta para gerar simulados para o ENEM. Sobre quais matérias e temas você deseja gerar as questões?")
 
 tema = st.text_input("Insira as matérias e temas desejados")
 
+if 'db_simu' not in st.session_state:
+    st.session_state.db_simu = vector_db_simu()
+    st.session_state.retriever = st.session_state.db_simu.as_retriever(search_type="similarity", search_kwargs={"k": 2})
+
 button_correcao = st.button("Gerar", type="primary")
 if button_correcao:
     with st.chat_message("Human", avatar="imgs/perfil.png"):
-        st.write_stream(gera_simulado(tema))
+        st.write_stream(gera_simulado(tema, st.session_state.retriever))
