@@ -66,7 +66,7 @@ def gera_simulado(user_query, retriever_simu, retriever):
     
     prompt = ChatPromptTemplate.from_template(template)
 
-    llm = ChatOpenAI(temperature=0.1, model="gpt-3.5-turbo-0125")
+    llm = ChatOpenAI(temperature=0.1, model="gpt-4o")
 
     generate_temas = (
         prompt
@@ -99,11 +99,11 @@ tema = st.text_input("Insira as matérias e temas desejados")
 
 if 'db' not in st.session_state:
     st.session_state.db = vector_db()
-    st.session_state.retriever = st.session_state.db.as_retriever(search_kwargs={"k": 5})
+    st.session_state.retriever = st.session_state.db.as_retriever(search_kwargs={"k": 3})
 
 if 'db_simu' not in st.session_state:
     st.session_state.db_simu = vector_db_simu()
-    st.session_state.retriever_simu = st.session_state.db_simu.as_retriever(search_type="similarity", search_kwargs={"k": 5})
+    st.session_state.retriever_simu = st.session_state.db_simu.as_retriever(search_type="similarity", search_kwargs={"k": 3})
 
 button_correcao = st.button("Gerar", type="primary")
 if button_correcao:
