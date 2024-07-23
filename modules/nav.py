@@ -16,6 +16,9 @@ def chatbotNav():
 def redacaoNav():
     st.sidebar.page_link("pages/redacao.py", label="Correção de Redação", icon='📚')
 
+def simuladoNav():
+    st.sidebar.page_link("pages/simulado.py", label="Gerador de Simulados", icon='📝')
+
 
 def MenuButtons():
     if 'authentication_status' not in ss:
@@ -28,4 +31,5 @@ def MenuButtons():
     # Se o usuário logar, mostra as demais telas.
     if ss["authentication_status"]:
         chatbotNav()
-        redacaoNav()     
+        redacaoNav()
+        simuladoNav()

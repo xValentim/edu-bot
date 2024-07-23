@@ -43,5 +43,4 @@ if user_query is not None and user_query != "":
     with st.chat_message("AI", avatar="imgs/perfil.png"):
         with st.spinner("Thinking..."):
             response = st.write_stream(respond(user_query, st.session_state.chat_history, st.session_state.db, st.session_state.retriever))
-            print('fala nengue',response)
     st.session_state.chat_history.append(AIMessage(content=response.replace("{","(").replace("}",")")))
