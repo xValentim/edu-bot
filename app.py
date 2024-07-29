@@ -1,11 +1,11 @@
 import streamlit as st
 from streamlit import session_state as ss
-from modules.nav import MenuButtons
+from modules.nav import MenuButtons, LoginNav
 
 if 'authentication_status' not in ss:
     st.switch_page('./pages/account.py')
 
-MenuButtons()
+LoginNav()
 st.header('Home page')
 
 # Protege o conteudo da pagina.

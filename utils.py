@@ -104,8 +104,7 @@ def reciprocal_rank_fusion(results: list[list], k=60):
 
 def respond(user_query, chat_history, db, retriever):
 
-    print('user_query:', user_query)
-    
+    print('responde', user_query)
     template = f"""Você é um assistente de modelo de linguagem de IA. Sua tarefa é gerar quatro versões diferentes da pergunta fornecida pelo usuário para recuperar 
     documentos relevantes de um banco de dados vetorial. Ao gerar várias perspectivas sobre a pergunta do usuário de contexto semântico idêntico, 
     seu objetivo é ajudar o usuário a superar algumas das limitações da busca de similaridade baseada em distância. 
