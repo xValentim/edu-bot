@@ -10,3 +10,6 @@ gradio
 langchain-pinecone
 streamlit
 streamlit_authenticator
+PyPDF2
+pymongo
+langchain_mongodb

@@ -12,6 +12,8 @@ from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 from operator import itemgetter
 from langchain.load import dumps, loads
+from langchain_mongodb import MongoDBAtlasVectorSearch
+from pymongo import MongoClient
 
 from yaml.loader import SafeLoader
 import streamlit_authenticator as stauth
@@ -46,6 +48,19 @@ def vector_db():
     vectorstore = PineconeVectorStore(index_name=index_name, embedding=embeddings)
     return vectorstore
 
+def vector_db_simu():
+    MONGODB_ATLAS_CLUSTER_URI = os.getenv('MONGODB_URI')
+    client = MongoClient(MONGODB_ATLAS_CLUSTER_URI)
+    DB_NAME = os.getenv("DB_NAME")
+    COLLECTION_NAME = os.getenv("COLLECTION_NAME")
+    ATLAS_VECTOR_SEARCH_INDEX_NAME = os.getenv("ATLAS_VECTOR_SEARCH_INDEX_NAME")
+    MONGODB_COLLECTION = client[DB_NAME][COLLECTION_NAME]
+    vectorstore = MongoDBAtlasVectorSearch(
+        embedding=OpenAIEmbeddings(),
+        collection=MONGODB_COLLECTION,
+        index_name=ATLAS_VECTOR_SEARCH_INDEX_NAME,
+    )
+    return vectorstore
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
@@ -89,8 +104,9 @@ def reciprocal_rank_fusion(results: list[list], k=60):
 
 def respond(user_query, chat_history, db, retriever):
 
-
-    template = """Você é um assistente de modelo de linguagem de IA. Sua tarefa é gerar quatro versões diferentes da pergunta fornecida pelo usuário para recuperar 
+    print('user_query:', user_query)
+    
+    template = f"""Você é um assistente de modelo de linguagem de IA. Sua tarefa é gerar quatro versões diferentes da pergunta fornecida pelo usuário para recuperar 
     documentos relevantes de um banco de dados vetorial. Ao gerar várias perspectivas sobre a pergunta do usuário de contexto semântico idêntico, 
     seu objetivo é ajudar o usuário a superar algumas das limitações da busca de similaridade baseada em distância. 
     Forneça essas perguntas alternativas separadas por novas linhas. \n
@@ -111,10 +127,11 @@ def respond(user_query, chat_history, db, retriever):
     retrieval_chain_rag_fusion = generate_queries | retriever.map() | reciprocal_rank_fusion
 
     chat = "\n\n".join([msg.content for msg in chat_history[-4:]])
-    history_buffer = f"Aqui está o que foi conversado até agora:\n\n {chat}"
+    # history_buffer = f"Aqui está o que foi conversado até agora:\n\n {chat}"
     
     
     template_1 = [
+        ('system', f"Aqui está o que foi conversado até agora:\n\n {chat}"),
         ('system', """
                     Você é um bot chamado Edu e foi desenvolvido pela Nero.AI. 
                     Você vai responder perguntas sobre Enem e dar dicas de estudo.
@@ -122,7 +139,8 @@ def respond(user_query, chat_history, db, retriever):
         ('system', "Aqui está o contexto adicional de videos no YouYube:\n\n{context_query}\n\nSempre que possível, cite fontes (dados do YouTube) de onde você está tirando a informação. Somente cite fontes dos documentos fornecidos acima."),
         ('system', "Obrigatoriamente tente relacionar o contexto da adicional com o contexto da pergunta. FORNEÇA LINKS para conteúdos que possam interessar ao usuários. JAMAIS USE LINKS QUE NÂO FORAM FORNECIDOS A VOCÊ."),
         ('system', "Suas respostas devem ser formatadas usando Markdown no caso de textos. Sempre que possível destaque expressões e tópicos principais com negrito ou itálico, e organize o texto usando títulos e subtítulos."),
-        ('system', "{user_query}"),
+        ('system', """Antes de fórmulas matemáticas, adicione $$ no início e no final da fórmula. Exemplo: $$\nx^2\n$$"""),
+        ('system', f"{user_query}"),
     ]
     
     prompt = ChatPromptTemplate.from_messages(template_1)
@@ -133,16 +151,13 @@ def respond(user_query, chat_history, db, retriever):
     chain = (
             {
                 "context_query": retrieval_chain_rag_fusion,
-                
-                "user_query": itemgetter("user_query")
-             }
+            }
             | prompt
-            | RunnableLambda(lambda x,  : history_buffer + " ".join([msg.prompt.template for msg in prompt.messages]))
             | llm
             | StrOutputParser()
         )
     
-    return chain.stream({"user_query": user_query})
+    return chain.stream({})
 
 embedding_size = 3072
 embedding_model = 'text-embedding-3-large'
