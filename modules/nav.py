@@ -25,7 +25,7 @@ def MenuButtons():
         ss.authentication_status = False
 
     # Sempre mostra a HOME e LOGIN.
-    HomeNav()
+    # HomeNav()
     LoginNav()
 
     # Se o usuário logar, mostra as demais telas.

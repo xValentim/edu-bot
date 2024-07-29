@@ -16,7 +16,6 @@ from PyPDF2 import PdfReader
 
 
 st.title("Corretor de Redação - Envie ao EduBot")
-cs_sidebar()
 
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -25,7 +24,7 @@ if 'authentication_status' not in ss:
     st.switch_page('./pages/account.py')
 
 MenuButtons()
-
+cs_sidebar()
 def corrige(uploaded_file, tema):
     doc = PdfReader(uploaded_file)
 

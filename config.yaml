@@ -7,7 +7,7 @@ credentials:
     admin:
       email: jsmith@gmail.com
       failed_login_attempts: 0
-      logged_in: true
+      logged_in: false
       name: admin
       password: $2b$12$SmWOg2ACLTqBKuf54.JrW.0FE0p.nuBST8Ofj0uRx0/PmUu4ba0h.
     hudson:
@@ -16,6 +16,12 @@ credentials:
       logged_in: true
       name: Hudson
       password: $2b$12$IQtjCa.0mfmvLxA6ug2DXO1tmlL7PprL4h/UNs2TTMw29RbomYzwy
+    laurama:
+      email: lauramattos@fundacaolemann.org.br
+      failed_login_attempts: 0
+      logged_in: true
+      name: Laura Mattos
+      password: $2b$12$66JkX2/Do3qSWH41DbdVvur2Fgs3mpnrcZx3KmkdLS39kkMy0QDum
     rbriggs:
       email: rbriggs@gmail.com
       failed_login_attempts: 0
