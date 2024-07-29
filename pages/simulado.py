@@ -8,7 +8,7 @@ if 'authentication_status' not in ss:
     st.switch_page('./pages/account.py')
 
 MenuButtons()
-
+cs_sidebar()
 st.title("Gerador de Simulados - EduBot")
 
 
