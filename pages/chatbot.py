@@ -35,9 +35,7 @@ for message in st.session_state.chat_history:
 user_query = st.chat_input("Type your message here...")
 if user_query is not None and user_query != "":
     user_query_show = user_query
-    print('no chatbot.py antes do replace', user_query)
-    user_query = user_query.replace("{","\lbrace").replace("}","\\rbrace")
-    print('no chatbot.py depois do replace', user_query)
+    user_query = user_query.replace("{","{{").replace("}","}}")
     st.session_state.chat_history.append(HumanMessage(content=user_query))
 
     with st.chat_message("Human", avatar="👤"):
@@ -46,4 +44,4 @@ if user_query is not None and user_query != "":
     with st.chat_message("AI", avatar="imgs/perfil.png"):
         with st.spinner("Thinking..."):
             response = st.write_stream(respond(user_query, st.session_state.chat_history, st.session_state.db, st.session_state.retriever))
-    st.session_state.chat_history.append(AIMessage(content=response))
+    st.session_state.chat_history.append(AIMessage(content=response.replace("{","{{").replace("}","}}")))
