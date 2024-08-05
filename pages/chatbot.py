@@ -42,6 +42,6 @@ if user_query is not None and user_query != "":
         st.markdown(user_query_show)
     
     with st.chat_message("AI", avatar="imgs/perfil.png"):
-        with st.spinner("Thinking..."):
+        with st.spinner("Pensando..."):
             response = st.write_stream(respond(user_query, st.session_state.chat_history, st.session_state.db, st.session_state.retriever))
     st.session_state.chat_history.append(AIMessage(content=response.replace("{","{{").replace("}","}}")))

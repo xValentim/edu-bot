@@ -21,45 +21,45 @@ authenticator = stauth.Authenticate(
     config['pre-authorized']
 )
 
-# login_tab = st.tabs(['Login'])
+login_tab, register_tab = st.tabs(['Login','Registrar'])
 # print('login_tab', login_tab)
-# with login_tab:
-# authenticator.login(location='main')
+with login_tab:
+    authenticator.login(location='main')
 
-if ss["authentication_status"]:
-    authenticator.logout(location='sidebar')  
-    st.header('Bem-vindo (a) ao EduBot!')  
-    # import streamlit as st
+    if ss["authentication_status"]:
+        authenticator.logout(location='sidebar')  
+        st.header('Bem-vindo (a) ao EduBot!')  
+        # import streamlit as st
 
-    # st.set_page_config(layout="wide")
+        # st.set_page_config(layout="wide")
 
-    st.markdown("""
-    <style>
-    .big-font {
-        font-size:30px !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+        st.markdown("""
+        <style>
+        .big-font {
+            font-size:30px !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
 
-    st.markdown(f'<p class="big-font">Olá {ss["name"]}!</p>\n<p class="big-font">Navegue nas abas laterais!</p>', unsafe_allow_html=True)
-    # st.write(f'Bem-vindo (a) *{ss["name"]}*')
+        st.markdown(f'<p class="big-font">Olá {ss["name"]}!</p>\n<p class="big-font">Navegue nas abas laterais!</p>', unsafe_allow_html=True)
+        # st.write(f'Bem-vindo (a) *{ss["name"]}*')
 
-elif ss["authentication_status"] is False:
-    st.error('Username/senha está errado')
-elif ss["authentication_status"] is None:
-    st.warning('Por favor insira seu username e senha')
+    elif ss["authentication_status"] is False:
+        st.error('Username/senha está errado')
+    elif ss["authentication_status"] is None:
+        st.warning('Por favor insira seu username e senha')
 
 # st.header('Login')
-authenticator.login(location='main')
+# authenticator.login(location='main')
 
-# with register_tab:
-#     if not ss["authentication_status"]:
-#         try:
-#             email_of_registered_user, username_of_registered_user, name_of_registered_user = authenticator.register_user(pre_authorization=False)
-#             if email_of_registered_user:
-#                 st.success('Usuário registrado com sucesso')
-#         except Exception as e:
-#             st.error(e)
+with register_tab:
+    if not ss["authentication_status"]:
+        try:
+            email_of_registered_user, username_of_registered_user, name_of_registered_user = authenticator.register_user(pre_authorization=False)
+            if email_of_registered_user:
+                st.success('Usuário registrado com sucesso')
+        except Exception as e:
+            st.error(e)
 
 
 
