@@ -14,14 +14,15 @@ from io import StringIO
 from openai import OpenAI
 from PyPDF2 import PdfReader
 
-
+if 'authentication_status' not in ss:
+    st.switch_page('./pages/account.py')
+    
 st.title("Corretor de Redação - Envie ao EduBot")
 
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-if 'authentication_status' not in ss:
-    st.switch_page('./pages/account.py')
+
 
 MenuButtons()
 cs_sidebar()
@@ -297,7 +298,7 @@ def corrige(uploaded_file, tema):
 
 st.subheader("Redação")
 
-uploaded_file = st.file_uploader("Upload a file", type=['pdf'])
+uploaded_file = st.file_uploader("Insira sua redação digitada", type=['pdf'])
 tema = st.text_input("Insira o tema da redação")
 
 button_correcao = st.button("Corrigir", type="primary")
