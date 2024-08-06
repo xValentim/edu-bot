@@ -23,6 +23,17 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if 'authentication_status' not in ss:
     st.switch_page('./pages/account.py')
 
+if 'control' not in st.session_state:
+    username = ss["username"]
+    with open(f'control.yaml') as file:
+        control = yaml.load(file, Loader=SafeLoader)
+    if username not in control:
+        st.session_state.requests_used = 0
+        control[username] = {"redacao_used": 0, "simulado_used": 0}
+        with open(f'control.yaml', 'w') as file:
+            yaml.dump(control, file)
+    st.control = control
+
 MenuButtons()
 cs_sidebar()
 def corrige(uploaded_file, tema):
@@ -302,8 +313,14 @@ tema = st.text_input("Insira o tema da redação")
 
 button_correcao = st.button("Corrigir", type="primary")
 if button_correcao:
-    with st.chat_message("Human", avatar="👤"):
-        corrige(uploaded_file, tema)
+    if st.control[username]["redacao_used"] >= 3:
+        st.error("Você atingiu o limite de 3 pedidos de correção de redação.")
+    else:
+        with st.chat_message("Human", avatar="👤"):
+            corrige(uploaded_file, tema)
+        st.control[username]["redacao_used"] += 1
+        with open(f'control.yaml', 'w') as file:
+            yaml.dump(st.control, file)
     
 
 

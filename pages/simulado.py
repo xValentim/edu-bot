@@ -101,11 +101,28 @@ if 'db' not in st.session_state:
     st.session_state.db = vector_db()
     st.session_state.retriever = st.session_state.db.as_retriever(search_kwargs={"k": 3})
 
-if 'db_simu' not in st.session_state:
-    st.session_state.db_simu = vector_db_simu()
-    st.session_state.retriever_simu = st.session_state.db_simu.as_retriever(search_type="similarity", search_kwargs={"k": 3})
+# if 'db_simu' not in st.session_state:
+#     st.session_state.db_simu = vector_db_simu()
+#     st.session_state.retriever_simu = st.session_state.db_simu.as_retriever(search_type="similarity", search_kwargs={"k": 3})
+
+if 'control' not in st.session_state:
+    username = ss["username"]
+    with open(f'control.yaml') as file:
+        control = yaml.load(file, Loader=SafeLoader)
+    if username not in control:
+        st.session_state.requests_used = 0
+        control[username] = {"redacao_used": 0, "simulado_used": 0}
+        with open(f'control.yaml', 'w') as file:
+            yaml.dump(control, file)
+    st.control = control
 
 button_correcao = st.button("Gerar", type="primary")
 if button_correcao:
-    with st.chat_message("Human", avatar="imgs/perfil.png"):
-        st.write_stream(gera_simulado(tema, st.session_state.retriever_simu, st.session_state.retriever))
+    if st.control[username]["simulado_used"] >= 5:
+        st.error("Você atingiu o limite de 5 pedidos de simulados.")
+    else:
+        with st.chat_message("Human", avatar="imgs/perfil.png"):
+            st.write_stream(gera_simulado(tema, st.session_state.retriever, st.session_state.retriever))
+        st.control[username]["simulado_used"] += 1
+        with open(f'control.yaml', 'w') as file:
+            yaml.dump(st.control, file)

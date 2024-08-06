@@ -9,7 +9,7 @@ pypdf
 gradio
 langchain-pinecone
 streamlit
-streamlit_authenticator
+streamlit_authenticator==0.3.2
 PyPDF2
 pymongo
 langchain_mongodb

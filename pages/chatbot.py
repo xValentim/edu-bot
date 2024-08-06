@@ -22,6 +22,7 @@ if 'db' not in st.session_state:
     st.session_state.db = vector_db()
     st.session_state.retriever = st.session_state.db.as_retriever(search_kwargs={"k": 3})
 
+
 # conversation
 for message in st.session_state.chat_history:
     if isinstance(message, AIMessage):

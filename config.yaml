@@ -22,6 +22,12 @@ credentials:
       logged_in: true
       name: Laura Mattos
       password: $2b$12$66JkX2/Do3qSWH41DbdVvur2Fgs3mpnrcZx3KmkdLS39kkMy0QDum
+    marlondev:
+      email: marlon@gmail.com
+      failed_login_attempts: 0
+      logged_in: true
+      name: Marlon
+      password: $2b$12$7KGP3GQZJEvAZrt7.faKO.JK9h8MfPRkkMMZP.b6hNEWOAQYWNsXC
     rbriggs:
       email: rbriggs@gmail.com
       failed_login_attempts: 0
