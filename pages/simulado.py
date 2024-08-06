@@ -101,9 +101,9 @@ if 'db' not in st.session_state:
     st.session_state.db = vector_db()
     st.session_state.retriever = st.session_state.db.as_retriever(search_kwargs={"k": 3})
 
-# if 'db_simu' not in st.session_state:
-#     st.session_state.db_simu = vector_db_simu()
-#     st.session_state.retriever_simu = st.session_state.db_simu.as_retriever(search_type="similarity", search_kwargs={"k": 3})
+if 'db_simu' not in st.session_state:
+    st.session_state.db_simu = vector_db_simu()
+    st.session_state.retriever_simu = st.session_state.db_simu.as_retriever(search_type="similarity", search_kwargs={"k": 3})
 
 if 'control' not in st.session_state:
     username = ss["username"]
@@ -122,7 +122,7 @@ if button_correcao:
         st.error("Você atingiu o limite de 5 pedidos de simulados.")
     else:
         with st.chat_message("Human", avatar="imgs/perfil.png"):
-            st.write_stream(gera_simulado(tema, st.session_state.retriever, st.session_state.retriever))
+            st.write_stream(gera_simulado(tema, st.session_state.retriever_simu, st.session_state.retriever))
         st.control[username]["simulado_used"] += 1
         with open(f'control.yaml', 'w') as file:
             yaml.dump(st.control, file)
